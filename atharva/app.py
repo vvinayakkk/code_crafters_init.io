@@ -5,11 +5,13 @@ import joblib
 import warnings
 import scipy.stats as stats
 from datetime import datetime
+from flask_cors import CORS
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
 
 app = Flask(__name__)
+CORS(app)
 
 # Load model once when the app starts
 print("Loading model from file...")
