@@ -1,11 +1,12 @@
-
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { BsCloudUpload, BsGearFill, BsBellFill, BsGraphUpArrow, BsThreeDotsVertical } from 'react-icons/bs';
 import { FaRobot } from 'react-icons/fa';
 import { BiVideo } from 'react-icons/bi';
+import { MdLocationOn } from 'react-icons/md';  // Add this import
 import Sidebar from '../components/sidebar';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 function VideoFeedPage() {
   const [selectedTab, setSelectedTab] = useState('view');
@@ -19,6 +20,9 @@ function VideoFeedPage() {
   const [frames , setFrames] = useState([]);
   const [modelView, setModelView] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState('');
+  const [location, setLocation] = useState(null);
+  const [trackingLocation, setTrackingLocation] = useState(false);
+  const navigate = useNavigate();
   const url1 = 'https://likely-key-donkey.ngrok-free.app';
   const url2 = 'https://sensible-emu-highly.ngrok-free.app';
   const url3 = 'https://normal-joint-hamster.ngrok-free.app'
@@ -123,6 +127,10 @@ function VideoFeedPage() {
     };
 
     fileInput.click();
+  };
+
+  const handleTrackLocation = () => {
+    navigate('/map');
   };
 
   useEffect(() => {
@@ -285,14 +293,21 @@ function VideoFeedPage() {
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 flex flex-col items-center justify-center">
                   <BsCloudUpload size={48} className="text-gray-400 mb-4" />
                   <p className="text-gray-600 mb-2">Drag and drop video files here or</p>
-                  <form onSubmit={handleUploadVideo}>
-                    <button
-                      type="submit"
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
-                    >
-                      Select Files
-                    </button>
-                  </form>
+                  <div className="flex gap-2">
+                    <form onSubmit={handleUploadVideo}>
+                      <button
+                        type="submit"
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
+                      >
+                        Select Files
+                      </button>
+                    </form>
+                  </div>
+                  {location && (
+                    <p className="text-sm text-gray-600 mt-2">
+                      📍 Location: {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}
+                    </p>
+                  )}
                   <p className="text-xs text-gray-500 mt-2">
                     Supported formats: MP4, AVI, MOV (max file size: 500MB)
                   </p>
@@ -371,6 +386,23 @@ function VideoFeedPage() {
                       <span>Detailed Analysis</span>
                     </button>
                   </div>
+                  
+                  <div className="mt-4 mb-6">
+                    <button
+                      onClick={handleTrackLocation}
+                      className="w-full flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md"
+                      disabled={trackingLocation}
+                    >
+                      <MdLocationOn />
+                      {trackingLocation ? 'Getting Location...' : 'Track Incident Location'}
+                    </button>
+                    {location && (
+                      <p className="text-sm text-gray-600 mt-2 text-center">
+                        📍 Location: {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}
+                      </p>
+                    )}
+                  </div>
+                  
                   <div className="mt-6">
                     <h3 className="text-xl font-semibold mb-4">Few of the Processed Frames</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

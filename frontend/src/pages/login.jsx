@@ -1,172 +1,87 @@
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
-import { TbBrandOpenai } from 'react-icons/tb';
-import React from 'react';
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { MdSecurity } from "react-icons/md";
 
-const AISection = ({ data }) => {
-  if (!data) {
-    return (
-      <div className="mt-6 bg-gray-100 rounded-lg p-4">
-        <h3 className="font-medium mb-4 flex items-center">
-          <TbBrandOpenai size={20} className="mr-2 text-purple-500" />
-          No AI Analysis Data Available
-        </h3>
-      </div>
-    );
+function LoginPage() {
+  const navigate = useNavigate();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    // Add validation logic here if needed
+    if (username && password) {
+      navigate('/dashboard');
+    }
   }
 
-  // Extract classification data
-  const predictedDetailedClass = data.detailed_class_name || "Unknown";
-  const predictedMajorClass = data.major_class_name || "Unknown";
-  
-  // Access insights with fallback
-  const insights = data.insights || {};
-
-  // Format raw sensors data for pie chart
-  const rawSensorsData = insights.raw_sensors ? 
-    Object.entries(insights.raw_sensors).map(([key, value]) => ({
-      name: key,
-      value: value.value || 0,
-      color: value.color || '#8884d8',
-      severity: value.severity || 'N/A'
-    })) : [];
-
-  // Format risk scores data for bar chart
-  const riskScoresData = insights.risk_scores ?
-    Object.entries(insights.risk_scores).map(([key, value]) => {
-      // Handle both object format and simple number format
-      if (typeof value === 'object' && value !== null) {
-        return {
-          name: key.replace(/_/g, ' '),
-          value: value.value || 0,
-          color: value.color || '#8884d8',
-          severity: value.severity || 'N/A'
-        };
-      } else {
-        return {
-          name: key.replace(/_/g, ' '),
-          value: typeof value === 'number' ? value : 0,
-          color: '#8884d8'
-        };
-      }
-    }) : [];
-
-  // Format basic metrics data for line chart
-  const basicMetricsData = insights.basic_metrics ?
-    Object.entries(insights.basic_metrics).map(([key, value]) => ({
-      name: key.replace(/_/g, ' '),
-      value: typeof value === 'number' ? value : 0
-    })) : [];
-
-  // Helper function to render text-based sections
-  const renderTextSection = (sectionKey, title) => {
-    if (!insights[sectionKey] || Object.keys(insights[sectionKey]).length === 0) {
-      return null;
-    }
-
-    return (
-      <div className="mt-6">
-        <h4 className="font-medium mb-2">{title}</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {Object.entries(insights[sectionKey]).map(([key, value]) => (
-            <div key={key} className="bg-white p-4 rounded-lg shadow-md">
-              <h5 className="font-medium">{key.replace(/_/g, ' ')}</h5>
-              <p className="text-sm text-gray-600">
-                {typeof value === 'object' ? 
-                  (value.value !== undefined ? 
-                    `${value.value}${value.severity ? ` (${value.severity})` : ''}` : 
-                    JSON.stringify(value)) : 
-                  String(value)}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
   return (
-    <div className="mt-6 bg-gray-100 rounded-lg p-4">
-      <h3 className="font-medium mb-4 flex items-center">
-        <TbBrandOpenai size={20} className="mr-2 text-purple-500" />
-        AI Analysis - {predictedDetailedClass} ({predictedMajorClass})
-      </h3>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Raw Sensors Data */}
-        {rawSensorsData.length > 0 && (
-          <div>
-            <h4 className="font-medium mb-2">Raw Sensors</h4>
-            <PieChart width={400} height={300}>
-              <Pie
-                data={rawSensorsData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(2)}%`}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {rawSensorsData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color || '#8884d8'} />
-                ))}
-              </Pie>
-              <Tooltip formatter={(value, name, props) => [`${value} (${props.payload.severity})`, name]} />
-            </PieChart>
+    <div className="min-h-screen flex items-center justify-center">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full"
+      >
+        <div className="flex justify-center mb-6">
+          <div className="rounded-full bg-blue-500 p-3">
+            <MdSecurity size={40} className="text-white" />
           </div>
-        )}
-
-        {/* Risk Scores Data */}
-        {riskScoresData.length > 0 && (
-          <div>
-            <h4 className="font-medium mb-2">Risk Scores</h4>
-            <BarChart width={400} height={300} data={riskScoresData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip formatter={(value, name, props) => {
-                return props.payload.severity ? 
-                  [`${value} (${props.payload.severity})`, name] : 
-                  [value, name];
-              }} />
-              <Legend />
-              <Bar dataKey="value" fill="#8884d8">
-                {riskScoresData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color || '#8884d8'} />
-                ))}
-              </Bar>
-            </BarChart>
-          </div>
-        )}
-      </div>
-
-      {/* Basic Metrics Data */}
-      {basicMetricsData.length > 0 && (
-        <div className="mt-6">
-          <h4 className="font-medium mb-2">Basic Metrics</h4>
-          <LineChart width={800} height={300} data={basicMetricsData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Line type="monotone" dataKey="value" stroke="#8884d8" activeDot={{ r: 8 }} />
-          </LineChart>
         </div>
-      )}
-
-      {/* Additional sections based on what's available in the response */}
-      {renderTextSection('additional_insights', 'Additional Insights')}
-      {renderTextSection('composite_indices', 'Composite Indices')}
-      {renderTextSection('differential_metrics', 'Differential Metrics')}
-      {renderTextSection('interaction_terms', 'Interaction Terms')}
-      {renderTextSection('physical_metrics', 'Physical Metrics')}
-      {renderTextSection('probabilistic_metrics', 'Probabilistic Metrics')}
-      {renderTextSection('statistical_measures', 'Statistical Measures')}
-      {renderTextSection('time_based_metrics', 'Time Based Metrics')}
-      {renderTextSection('transformations', 'Transformations')}
+        <h2 className="text-2xl font-bold text-center mb-6">SecureVision AI</h2>
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="username">
+              Username
+            </label>
+            <input
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
+              id="username"
+              type="text"
+              placeholder="Enter your username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+          </div>
+          <div className="mb-6">
+            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
+              Password
+            </label>
+            <input
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
+              id="password"
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center">
+              <input
+                id="remember-me"
+                type="checkbox"
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+                Remember me
+              </label>
+            </div>
+            <a href="#" className="text-sm text-blue-600 hover:underline">
+              Forgot password?
+            </a>
+          </div>
+          <button
+            type="submit"
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
+          >
+            Sign In
+          </button>
+        </form>
+      </motion.div>
     </div>
   );
-};
+}
 
-export default AISection;
+export default LoginPage;

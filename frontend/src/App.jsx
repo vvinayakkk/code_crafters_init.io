@@ -6,18 +6,26 @@ import './index.css'
 import VideoFeedPage from './pages/VideoFeed'
 import { Route, Routes } from 'react-router-dom'
 import Dashboard from './pages/dashboard'
+import GTranslate from './components/Gtranslate'
+import Home from './pages/Landing'
+import PoliceStationMap from './pages/Map'
 
 function App() {
   const [count, setCount] = useState(0)
 
   return (
-    <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/sensor" element={<SensorDataPage />} />
-      <Route path="/video" element={<VideoFeedPage />} />
-      <Route path="/weather" element={<WeatherDataPage />} />
-    </Routes>
+    <>
+      <GTranslate />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/sensor" element={<SensorDataPage />} />
+        <Route path="/video" element={<VideoFeedPage />} />
+        <Route path="/weather" element={<WeatherDataPage />} />
+        <Route path="/map" element={<PoliceStationMap />} />
+      </Routes>
+    </>
   )
 }
 
