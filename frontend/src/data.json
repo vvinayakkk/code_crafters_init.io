@@ -1,0 +1,202 @@
+[
+    {
+        "lidar_distance": 1.5,
+        "fiber_vibration": 0.05,
+        "ugs_motion": 0,
+        "temperature": 20.0,
+        "humidity": 45.0,
+        "rainfall": 0.0,
+        "noise": 0.1,
+        "description": "Calm normal operation"
+    },
+    {
+        "lidar_distance": 1.2,
+        "fiber_vibration": 0.2,
+        "ugs_motion": 0,
+        "temperature": 15.0,
+        "humidity": 60.0,
+        "rainfall": 2.0,
+        "noise": 0.3,
+        "description": "Normal with minor weather change"
+    },
+    {
+        "lidar_distance": 0.8,
+        "fiber_vibration": 1.5,
+        "ugs_motion": 1,
+        "temperature": 22.0,
+        "humidity": 50.0,
+        "rainfall": 0.5,
+        "noise": 0.8,
+        "description": "Human intrusion detected"
+    },
+    {
+        "lidar_distance": 0.5,
+        "fiber_vibration": 2.0,
+        "ugs_motion": 1,
+        "temperature": 28.0,
+        "humidity": 40.0,
+        "rainfall": 0.0,
+        "noise": 1.0,
+        "description": "Vehicle intrusion"
+    },
+    {
+        "lidar_distance": 1.0,
+        "fiber_vibration": 0.1,
+        "ugs_motion": 0,
+        "temperature": 60.0,
+        "humidity": 30.0,
+        "rainfall": 0.0,
+        "noise": 1.5,
+        "description": "Building fire"
+    },
+    {
+        "lidar_distance": 1.3,
+        "fiber_vibration": 0.3,
+        "ugs_motion": 0,
+        "temperature": 55.0,
+        "humidity": 20.0,
+        "rainfall": 0.0,
+        "noise": 2.0,
+        "description": "Wildfire risk"
+    },
+    {
+        "lidar_distance": 1.0,
+        "fiber_vibration": 0.4,
+        "ugs_motion": 0,
+        "temperature": 25.0,
+        "humidity": 90.0,
+        "rainfall": 20.0,
+        "noise": 0.9,
+        "description": "Flooding due to heavy rain"
+    },
+    {
+        "lidar_distance": 1.1,
+        "fiber_vibration": 0.2,
+        "ugs_motion": 0,
+        "temperature": 18.0,
+        "humidity": 85.0,
+        "rainfall": 15.0,
+        "noise": 0.7,
+        "description": "Moderate flood risk"
+    },
+    {
+        "lidar_distance": 0.6,
+        "fiber_vibration": 3.0,
+        "ugs_motion": 1,
+        "temperature": 26.0,
+        "humidity": 50.0,
+        "rainfall": 0.0,
+        "noise": 2.5,
+        "description": "Earthquake"
+    },
+    {
+        "lidar_distance": 0.9,
+        "fiber_vibration": 2.8,
+        "ugs_motion": 1,
+        "temperature": 30.0,
+        "humidity": 55.0,
+        "rainfall": 0.0,
+        "noise": 1.8,
+        "description": "Seismic activity"
+    },
+    {
+        "lidar_distance": 2.0,
+        "fiber_vibration": 0.01,
+        "ugs_motion": 0,
+        "temperature": 10.0,
+        "humidity": 70.0,
+        "rainfall": 5.0,
+        "noise": 0.2,
+        "description": "Cold and quiet normal"
+    },
+    {
+        "lidar_distance": 0.3,
+        "fiber_vibration": 1.8,
+        "ugs_motion": 1,
+        "temperature": 35.0,
+        "humidity": 45.0,
+        "rainfall": 0.0,
+        "noise": 1.2,
+        "description": "Close proximity intrusion"
+    },
+    {
+        "lidar_distance": 1.0,
+        "fiber_vibration": 0.5,
+        "ugs_motion": 0,
+        "temperature": 80.0,
+        "humidity": 15.0,
+        "rainfall": 0.0,
+        "noise": 2.2,
+        "description": "Extreme heat fire risk"
+    },
+    {
+        "lidar_distance": 1.2,
+        "fiber_vibration": 0.1,
+        "ugs_motion": 0,
+        "temperature": 22.0,
+        "humidity": 95.0,
+        "rainfall": 25.0,
+        "noise": 0.6,
+        "description": "High humidity flood"
+    },
+    {
+        "lidar_distance": 0.7,
+        "fiber_vibration": 2.5,
+        "ugs_motion": 1,
+        "temperature": 40.0,
+        "humidity": 35.0,
+        "rainfall": 0.0,
+        "noise": 1.9,
+        "description": "Potential explosion or heavy machinery"
+    },
+    {
+        "lidar_distance": 1.8,
+        "fiber_vibration": 0.05,
+        "ugs_motion": 0,
+        "temperature": 5.0,
+        "humidity": 80.0,
+        "rainfall": 10.0,
+        "noise": 0.4,
+        "description": "Cold weather with light rain"
+    },
+    {
+        "lidar_distance": 0.4,
+        "fiber_vibration": 1.9,
+        "ugs_motion": 1,
+        "temperature": 28.0,
+        "humidity": 60.0,
+        "rainfall": 2.0,
+        "noise": 1.3,
+        "description": "Intrusion during light rain"
+    },
+    {
+        "lidar_distance": 1.0,
+        "fiber_vibration": 0.3,
+        "ugs_motion": 0,
+        "temperature": 65.0,
+        "humidity": 25.0,
+        "rainfall": 0.0,
+        "noise": 1.7,
+        "description": "Dry heat fire potential"
+    },
+    {
+        "lidar_distance": 1.1,
+        "fiber_vibration": 0.15,
+        "ugs_motion": 0,
+        "temperature": 20.0,
+        "humidity": 88.0,
+        "rainfall": 18.0,
+        "noise": 0.5,
+        "description": "Pre-flood conditions"
+    },
+    {
+        "lidar_distance": 0.8,
+        "fiber_vibration": 3.5,
+        "ugs_motion": 1,
+        "temperature": 32.0,
+        "humidity": 50.0,
+        "rainfall": 0.0,
+        "noise": 2.8,
+        "description": "Extreme seismic event"
+    }
+]
