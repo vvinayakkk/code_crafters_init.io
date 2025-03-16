@@ -1,0 +1,338 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Person Tracking and Segmentation</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <style>
+        .hidden { display: none; }
+        .processing-container { margin-top: 20px; }
+        .results-container { margin-top: 20px; }
+        #progressBar { height: 25px; }
+        .log-container {
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            height: 100px;
+            overflow-y: auto;
+            font-family: monospace;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Person Tracking and Segmentation</h1>
+        <hr>
+        
+        <!-- Settings Panel -->
+        <div class="card mb-4">
+            <div class="card-header">Processing Options</div>
+            <div class="card-body">
+                <form id="videoForm" enctype="multipart/form-data">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="segmentation_method" class="form-label">Segmentation Method</label>
+                            <select class="form-select" id="segmentation_method" name="segmentation_method">
+                                <option value="Background Subtraction (Fast)">Background Subtraction (Fast)</option>
+                                <option value="Watershed Segmentation (Better)">Watershed Segmentation (Better)</option>
+                                <option value="Mask R-CNN (Best but slower)">Mask R-CNN (Best but slower)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="color_option" class="form-label">Visualization Style</label>
+                            <select class="form-select" id="color_option" name="color_option">
+                                <option value="Bounding Boxes">Bounding Boxes</option>
+                                <option value="Segmentation Masks">Segmentation Masks</option>
+                                <option value="Combined View" selected>Combined View</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div id="maskRcnnStatus" class="alert alert-warning hidden">
+                        Checking Mask R-CNN availability...
+                    </div>
+                    
+                    <div id="maskRcnnDownload" class="alert alert-info hidden">
+                        <p>Mask R-CNN model files are not available. You need to download them to use this feature.</p>
+                        <button type="button" id="downloadModelBtn" class="btn btn-primary">Download Mask R-CNN Model</button>
+                        <div class="progress mt-2 hidden" id="downloadProgress">
+                            <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="video" class="form-label">Select Video File</label>
+                        <input class="form-control" type="file" id="video" name="video" accept=".mp4,.avi,.mov">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" id="processBtn">Process Video</button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Processing Status -->
+        <div class="processing-container hidden" id="processingContainer">
+            <div class="card">
+                <div class="card-header">Processing Status</div>
+                <div class="card-body">
+                    <h5 id="statusMessage">Processing your video...</h5>
+                    <div class="progress mb-3" id="progressBar">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span id="progressText">0%</span>
+                        <span id="timeElapsed">Time: 0s</span>
+                    </div>
+                    <div class="log-container" id="logContainer">
+                        <div id="logContent"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Results -->
+        <div class="results-container hidden" id="resultsContainer">
+            <div class="card">
+                <div class="card-header">Results</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h5>Processed Video</h5>
+                        <video id="processedVideo" controls class="img-fluid">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <a id="downloadLink" class="btn btn-success" download>Download Processed Video</a>
+                        <button id="clearBtn" class="btn btn-danger">Clear Results</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Error Display -->
+        <div class="alert alert-danger mt-3 hidden" id="errorContainer">
+            <h5>Error</h5>
+            <p id="errorMessage"></p>
+        </div>
+    </div>
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            let currentTaskId = null;
+            let statusInterval = null;
+            
+            // Check Mask R-CNN availability if option is selected
+            $("#segmentation_method").change(function() {
+                if ($(this).val() === "Mask R-CNN (Best but slower)") {
+                    checkMaskRcnnAvailability();
+                } else {
+                    $("#maskRcnnStatus").addClass("hidden");
+                    $("#maskRcnnDownload").addClass("hidden");
+                }
+            });
+            
+            // Initial check if Mask R-CNN is selected
+            if ($("#segmentation_method").val() === "Mask R-CNN (Best but slower)") {
+                checkMaskRcnnAvailability();
+            }
+            
+            // Download Mask R-CNN model
+            $("#downloadModelBtn").click(function(e) {
+                e.preventDefault();
+                downloadMaskRcnnModel();
+            });
+            
+            // Form submission
+            $("#videoForm").submit(function(e) {
+                e.preventDefault();
+                
+                // Validate input
+                const videoFile = $("#video")[0].files[0];
+                if (!videoFile) {
+                    showError("Please select a video file.");
+                    return;
+                }
+                
+                // Clear previous results
+                clearResults();
+                
+                // Show processing container
+                $("#processingContainer").removeClass("hidden");
+                
+                // Create form data
+                const formData = new FormData(this);
+                
+                // Upload video
+                $.ajax({
+                    url: '/upload',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        currentTaskId = response.task_id;
+                        startStatusPolling(currentTaskId);
+                    },
+                    error: function(xhr) {
+                        showError("Error uploading video: " + xhr.responseJSON.error);
+                        $("#processingContainer").addClass("hidden");
+                    }
+                });
+            });
+            
+            // Clear results
+            $("#clearBtn").click(function() {
+                if (currentTaskId) {
+                    $.post('/clear_task/' + currentTaskId, function() {
+                        clearResults();
+                    });
+                }
+            });
+            
+            // Function to check Mask R-CNN availability
+            function checkMaskRcnnAvailability() {
+                $("#maskRcnnStatus").removeClass("hidden").text("Checking Mask R-CNN availability...");
+                $("#maskRcnnDownload").addClass("hidden");
+                
+                $.ajax({
+                    url: '/check_mask_rcnn',
+                    type: 'GET',
+                    success: function(response) {
+                        $("#maskRcnnStatus").addClass("hidden");
+                        
+                        if (!response.available) {
+                            $("#maskRcnnDownload").removeClass("hidden");
+                        }
+                    },
+                    error: function() {
+                        $("#maskRcnnStatus").text("Error checking Mask R-CNN availability.");
+                    }
+                });
+            }
+            
+            // Function to download Mask R-CNN model
+            function downloadMaskRcnnModel() {
+                $("#downloadModelBtn").prop("disabled", true).text("Downloading...");
+                $("#downloadProgress").removeClass("hidden");
+                
+                $.ajax({
+                    url: '/download_mask_rcnn',
+                    type: 'POST',
+                    success: function(response) {
+                        // Poll for download status
+                        let downloadInterval = setInterval(function() {
+                            $.ajax({
+                                url: '/check_mask_rcnn',
+                                type: 'GET',
+                                success: function(checkResponse) {
+                                    if (checkResponse.available) {
+                                        clearInterval(downloadInterval);
+                                        $("#maskRcnnDownload").addClass("hidden");
+                                        $("#downloadModelBtn").prop("disabled", false).text("Download Mask R-CNN Model");
+                                        $("#downloadProgress").addClass("hidden");
+                                        $("#maskRcnnStatus").removeClass("hidden").text("Mask R-CNN model downloaded successfully!");
+                                    }
+                                }
+                            });
+                        }, 2000);
+                    },
+                    error: function() {
+                        $("#downloadModelBtn").prop("disabled", false).text("Download Failed - Retry");
+                        $("#downloadProgress").addClass("hidden");
+                    }
+                });
+            }
+            
+            // Function to start polling for task status
+            function startStatusPolling(taskId) {
+                if (statusInterval) {
+                    clearInterval(statusInterval);
+                }
+                
+                statusInterval = setInterval(function() {
+                    $.ajax({
+                        url: '/task_status/' + taskId,
+                        type: 'GET',
+                        success: function(response) {
+                            updateStatus(response);
+                            
+                            // If processing is complete or failed, stop polling
+                            if (response.status === 'completed' || response.status === 'failed') {
+                                clearInterval(statusInterval);
+                            }
+                        },
+                        error: function() {
+                            showError("Error getting task status.");
+                            clearInterval(statusInterval);
+                        }
+                    });
+                }, 1000);
+            }
+            
+            // Function to update status display
+            function updateStatus(response) {
+                // Update progress bar
+                const progressPercent = response.progress + "%";
+                $("#progressBar .progress-bar").css("width", progressPercent);
+                $("#progressText").text(progressPercent);
+                
+                // Update time elapsed
+                $("#timeElapsed").text("Time: " + response.elapsed_time + "s");
+                
+                // Update log
+                if (response.log) {
+                    $("#logContent").text(response.log);
+                    $("#logContainer").scrollTop($("#logContainer")[0].scrollHeight);
+                }
+                
+                // Handle different statuses
+                if (response.status === 'completed') {
+                    $("#statusMessage").text("Processing completed!");
+                    
+                    // Show results
+                    $("#resultsContainer").removeClass("hidden");
+                    $("#processedVideo").attr("src", response.output_url);
+                    $("#downloadLink").attr("href", response.output_url).text("Download " + response.filename);
+                    
+                } else if (response.status === 'failed') {
+                    $("#statusMessage").text("Processing failed!");
+                    showError(response.error || "Unknown error occurred during processing.");
+                    
+                } else {
+                    $("#statusMessage").text("Processing your video (" + response.status + ")...");
+                }
+            }
+            
+            // Function to show error message
+            function showError(message) {
+                $("#errorContainer").removeClass("hidden");
+                $("#errorMessage").text(message);
+            }
+            
+            // Function to clear results and reset UI
+            function clearResults() {
+                $("#resultsContainer").addClass("hidden");
+                $("#processingContainer").addClass("hidden");
+                $("#errorContainer").addClass("hidden");
+                $("#progressBar .progress-bar").css("width", "0%");
+                $("#progressText").text("0%");
+                $("#timeElapsed").text("Time: 0s");
+                $("#logContent").text("");
+                
+                if (statusInterval) {
+                    clearInterval(statusInterval);
+                    statusInterval = null;
+                }
+                
+                currentTaskId = null;
+            }
+        });
+    </script>
+</body>
+</html>
+        
