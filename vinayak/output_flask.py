@@ -203,6 +203,7 @@ def process_video(input_path, output_path):
     
     return output_path
 
+import json
 # API endpoint to process video - UPDATED to return binary data directly
 @app.route('/process-video', methods=['POST'])
 def process_video_endpoint():
@@ -222,7 +223,7 @@ def process_video_endpoint():
         filename = secure_filename(file.filename)
         base_name, extension = os.path.splitext(filename)
         input_filename = f"{base_name}_{unique_id}{extension}"
-        output_filename = f"processed_{base_name}_{unique_id}.mp4"  # Changed to .mp4 for better compatibility
+        output_filename = f"processed_{base_name}_{unique_id}.mp4"
         
         input_path = os.path.join(app.config['UPLOAD_FOLDER'], input_filename)
         output_path = os.path.join(app.config['OUTPUT_FOLDER'], output_filename)
@@ -231,20 +232,21 @@ def process_video_endpoint():
         file.save(input_path)
         
         try:
-            # Process the video
-            process_video(input_path, output_path)
+            # Process the video and get classification results
+            output_path, classification_results = process_video_with_results(input_path, output_path)
             
-            # Read the file into memory
+            # Read the processed video file as binary data
             with open(output_path, 'rb') as video_file:
                 video_binary = video_file.read()
             
-            # Create a response with binary video data
+            # Return the video binary directly as a response
             response = Response(
                 video_binary,
+                status=200,
                 mimetype='video/mp4',
                 headers={
-                    'Content-Disposition': f'attachment; filename="{output_filename}"',
-                    'Content-Length': str(len(video_binary))
+                    'Content-Disposition': f'attachment; filename={output_filename}',
+                    'X-Classification-Results': json.dumps(classification_results)
                 }
             )
             
@@ -257,7 +259,6 @@ def process_video_endpoint():
             try:
                 if os.path.exists(input_path):
                     os.remove(input_path)
-                # Optionally remove output file after sending
                 if os.path.exists(output_path):
                     os.remove(output_path)
             except Exception as e:
@@ -265,6 +266,140 @@ def process_video_endpoint():
     
     return jsonify({'error': 'Invalid file format'}), 400
 
+# Modified video processing function that returns the classification results
+def process_video_with_results(input_path, output_path):
+    # Initialize variables
+    fps = 30
+    final_inf_counter = 0
+    final_infer_time = time.time()
+    final_infer_duration = 0
+    frames_idx = []
+    
+    # For storing final results
+    final_results = {
+        'top_classes': [],
+        'confidences': [],
+        'inference_stats': {}
+    }
+    
+    # Open the video file
+    cap = cv2.VideoCapture(input_path)
+    
+    # Get video properties
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    
+    # Set up output video writer
+    try:
+        fourcc = cv2.VideoWriter_fourcc(*'avc1')  # H.264 codec
+        out = cv2.VideoWriter(output_path, fourcc, fps, (620, 350))
+    except:
+        try:
+            fourcc = cv2.VideoWriter_fourcc(*'H264')  # Alternative H.264 fourcc
+            out = cv2.VideoWriter(output_path, fourcc, fps, (620, 350))
+        except:
+            # Fall back to XVID if H.264 isn't available
+            fourcc = cv2.VideoWriter_fourcc(*'XVID')
+            out = cv2.VideoWriter(output_path, fourcc, fps, (620, 350))
+    
+    processing_times = collections.deque()
+    processing_time = 0
+    fps_calc = 0
+    encoder_output = []
+    decoded_labels = ["", "", ""]
+    decoded_top_probs = [0, 0, 0]
+    counter = 0
+    
+    # Text templates
+    text_inference_template = "Infer Time:{Time:.1f}ms, FPS:{fps:.1f}"
+    text_template = "{label},{conf:.2f}%"
+    
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+            
+        counter += 1
+        frame_counter = counter
+        
+        # Preprocess frame
+        preprocessed = cv2.resize(frame, IMG_SIZE)
+        preprocessed = preprocessed[:, :, [2, 1, 0]]  # BGR -> RGB
+        
+        # Process every second frame
+        if counter % 2 == 0:
+            frames_idx.append((counter, frame_counter, 'Yes'))
+            
+            # Measure processing time
+            start_time = time.time()
+            
+            # Encoder inference per frame
+            encoder_output.append(compiled_model_ir([preprocessed[None, ...]])[output_layer_ir][0])
+            
+            if len(encoder_output) == frames2decode:
+                # Run decoder on collected frames
+                encoder_output_array = np.array(encoder_output)[None, ...]
+                probabilities = decoder.predict(encoder_output_array)[0]
+                
+                for idx, i in enumerate(np.argsort(probabilities)[::-1][:3]):
+                    decoded_labels[idx] = class_vocab[i]
+                    decoded_top_probs[idx] = probabilities[i]
+                
+                # Update final results with current top predictions
+                final_results['top_classes'] = decoded_labels.copy()
+                final_results['confidences'] = [float(prob * 100) for prob in decoded_top_probs]
+                
+                encoder_output = []
+                final_inf_counter += 1
+                final_infer_duration = (time.time() - final_infer_time)
+                final_infer_time = time.time()
+            
+            # Inference has finished
+            stop_time = time.time()
+            
+            # Calculate processing time
+            processing_times.append(stop_time - start_time)
+            if len(processing_times) > 200:
+                processing_times.popleft()
+            
+            processing_time = np.mean(processing_times) * 1000 if processing_times else 0
+            fps_calc = 1000 / processing_time if processing_time > 0 else 0
+            
+        else:
+            frames_idx.append((counter, frame_counter, 'No'))
+        
+        # Resize frame for display
+        frame = cv2.resize(frame, (620, 350))
+        
+        # Add text overlays
+        for i in range(0, 3):
+            display_text = text_template.format(
+                label=decoded_labels[i],
+                conf=decoded_top_probs[i] * 100,
+            )
+            frame = display_text_fnc(frame, display_text, i)
+        
+        display_text = text_inference_template.format(Time=processing_time, fps=fps_calc)
+        frame = display_text_fnc(frame, display_text, 3)
+        frame = display_text_fnc(frame, f"Infer Count: {final_inf_counter}", 4)
+        
+        # Write frame to output video
+        out.write(frame)
+    
+    # Update final statistics before finishing
+    final_results['inference_stats'] = {
+        'total_inferences': final_inf_counter,
+        'avg_processing_time_ms': float(processing_time),
+        'final_fps': float(fps_calc)
+    }
+    
+    # Clean up
+    cap.release()
+    out.release()
+    
+    return output_path, final_results
 # Health check endpoint
 @app.route('/health', methods=['GET'])
 def health_check():
