@@ -224,23 +224,6 @@ sequenceDiagram
 
 ---
 
-## Deployment
-
-1. **Backend**: Flask with CORS, running on port 3000 (sensors) and 3900 (weather).
-2. **Frontend**: Custom UI with 3D visualizations (install dependencies via `npm install` if applicable).
-3. **Requirements**: 
-   ```
-   pip install -r requirements.txt
-   ```
-   See individual `requirements.txt` files in subdirectories.
-4. **Run**:
-   ```
-   python app_sensor.py
-   python app_weather.py
-   ```
-
----
-
 ## Future Scope
 
 - Integrate real IoT devices (e.g., Raspberry Pi) for live sensor data.
