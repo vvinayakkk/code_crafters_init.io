@@ -8,6 +8,7 @@ import axios from 'axios';
 import Sidebar from '../components/sidebar';
 import data from '../data.json';
 import AISection from '../components/aiSections';
+import ThreeDSensorMap from '../components/3dHouse';
 
 const sampleSensorData = {
   temperature: 24,
@@ -338,32 +339,7 @@ function SensorDataPage() {
             
             <div className="mt-6">
               <h3 className="font-medium mb-4">Sensor Map</h3>
-              <div className="aspect-video bg-white border rounded-lg relative">
-                <svg width="100%" height="100%" viewBox="0 0 800 400">
-                  <rect x="50" y="50" width="700" height="300" fill="none" stroke="#333" strokeWidth="4" />
-                  <line x1="400" y1="50" x2="400" y2="350" stroke="#333" strokeWidth="4" />
-                  <line x1="50" y1="200" x2="400" y2="200" stroke="#333" strokeWidth="4" />
-                  
-                  <text x="100" y="30" fontSize="14" fill="#333">Living Room</text>
-                  <text x="450" y="30" fontSize="14" fill="#333">Bedroom</text>
-                  <text x="100" y="230" fontSize="14" fill="#333">Kitchen</text>
-                  
-                  <circle cx="150" cy="100" r="10" fill={sampleSensorData.motion ? "#ff4444" : "#88ccff"} />
-                  <text x="170" y="105" fontSize="12" fill="#333">Motion</text>
-                  
-                  <circle cx="350" cy="350" r="10" fill={sampleSensorData.door ? "#ff4444" : "#88ccff"} />
-                  <text x="370" y="355" fontSize="12" fill="#333">Door</text>
-                  
-                  <circle cx="700" cy="100" r="10" fill={sampleSensorData.window ? "#ff4444" : "#88ccff"} />
-                  <text x="720" y="105" fontSize="12" fill="#333">Window</text>
-                  
-                  <circle cx="150" cy="250" r="10" fill="#ff4444" />
-                  <text x="170" y="255" fontSize="12" fill="#333">Temp</text>
-                  
-                  <circle cx="250" cy="250" r="10" fill="#88ccff" />
-                  <text x="270" y="255" fontSize="12" fill="#333">Humidity</text>
-                </svg>
-              </div>
+              <ThreeDSensorMap />
             </div>
           </div>
 
