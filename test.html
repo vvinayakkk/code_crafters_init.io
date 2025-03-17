@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Analysis</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        #preview {
+            margin-top: 20px;
+            max-width: 500px;
+        }
+        #status {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Upload Video for Analysis</h2>
+
+    <input type="file" id="videoInput" accept="video/*">
+    <button onclick="uploadVideo()">Upload</button>
+
+    <p id="status"></p>
+    <video id="preview" controls></video>
+    <h3>Response:</h3>
+    <p id="response"></p>
+
+    <script>
+        async function uploadVideo() {
+            const videoInput = document.getElementById('videoInput');
+            const status = document.getElementById('status');
+            const responseText = document.getElementById('response');
+            const preview = document.getElementById('preview');
+
+            if (!videoInput.files.length) {
+                status.innerText = "Please select a video file!";
+                return;
+            }
+
+            const videoFile = videoInput.files[0];
+            const formData = new FormData();
+            formData.append("video", videoFile);
+
+            // Show video preview
+            preview.src = URL.createObjectURL(videoFile);
+
+            status.innerText = "Uploading...";
+
+            try {
+                const response = await fetch("http://127.0.0.1:3000/analyze-video", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    responseText.innerText = `Description: ${result.description}`;
+                } else {
+                    responseText.innerText = `Error: ${result.error}`;
+                }
+                status.innerText = "Upload Complete";
+            } catch (error) {
+                console.error("Error:", error);
+                status.innerText = "Upload Failed";
+                responseText.innerText = "Error communicating with server.";
+            }
+        }
+    </script>
+
+</body>
+</html>
