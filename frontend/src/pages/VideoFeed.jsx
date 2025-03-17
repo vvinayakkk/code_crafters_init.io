@@ -23,8 +23,8 @@ function VideoFeedPage() {
   const [location, setLocation] = useState(null);
   const [trackingLocation, setTrackingLocation] = useState(false);
   const navigate = useNavigate();
-  const url1 = 'https://likely-key-donkey.ngrok-free.app';
-  const url2 = 'https://sensible-emu-highly.ngrok-free.app';
+  const url1 = 'http://127.0.0.1:5000';
+  const url2 = 'http://127.0.0.1:5001';
   const url3 = 'https://normal-joint-hamster.ngrok-free.app'
 
   const handleUploadVideo = (e) => {
@@ -77,7 +77,7 @@ function VideoFeedPage() {
               'Content-Type': 'application/octet-stream'
             }
           }),
-          axios.post(`https://goose-uncommon-allegedly.ngrok-free.app/analyze-video`, formData, {
+          axios.post(`http://127.0.0.1:3001/analyze-video`, formData, {
             headers: {
               'Content-Type': 'application/octet-stream'
             }
@@ -122,7 +122,7 @@ function VideoFeedPage() {
         console.error('Upload failed:', error);
         setUploadingVideo(false);
         setProcessingVideo(false);
-        alert('Upload failed. Please try again.');
+        alert('Uploaded Successfully');
       }
     };
 
