@@ -1,8 +1,9 @@
 # Autonomous Surveillance System with Multi-Sensor Data Fusion
 
-![diagram-export-3-16-2025-6_44_59-AM](https://github.com/user-attachments/assets/905c2294-9e5b-409b-a485-80e0db495b6a)
 
 *Real-time threat detection and anomaly tracking using cutting-edge AI and multi-sensor fusion.*
+
+<img width="1024" height="1024" alt="image" src="https://github.com/user-attachments/assets/d1fc20c2-013b-4281-b567-46505dbfff6c" />
 
 ---
 
@@ -19,6 +20,7 @@ The dashboard provides a dynamic visualization of processed data, simulating rea
 
 ---
 
+![diagram-export-3-16-2025-6_44_59-AM](https://github.com/user-attachments/assets/905c2294-9e5b-409b-a485-80e0db495b6a)
 ## Problem Statement
 
 The goal was to create an autonomous surveillance system capable of:
